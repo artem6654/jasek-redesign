@@ -1,0 +1,9 @@
+{
+  "name": "jasek-redesign",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node src/build.mjs",
+    "serve": "node src/serve.mjs 8090"
+  }
+}
