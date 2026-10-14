@@ -11,6 +11,12 @@ npm run build   # генерирует site/**/index.html из src/
 npm run serve   # http://127.0.0.1:8090/
 ```
 
+## Хостинг превью
+
+- **Vercel** — `vercel.json` (сборка `npm run build`, папка `site`).
+- **GitHub Pages** — ветка `gh-pages`, собирается командой `npm run deploy:pages` (сборка с `BASE_PATH=/jasek-redesign`).
+- Превью-сборки помечены `noindex` (meta, `X-Robots-Tag`, `robots.txt`), чтобы копия не конкурировала с настоящим jasek.pl в поиске. Для боевого сайта: `PRODUCTION=1 npm run build`.
+
 ## Структура
 
 | Путь | Что это |

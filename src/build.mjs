@@ -6,6 +6,12 @@ import home from './pages/home.mjs';
 import inner from './pages/inner.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'site');
+
+// BASE_PATH: URL prefix when hosted in a sub-folder (GitHub Pages: /jasek-redesign).
+// PRODUCTION=1: build for www.jasek.pl. Otherwise the preview is marked noindex so the
+// prototype copy never competes with the client's real site in search results.
+const BASE = (process.env.BASE_PATH || '').replace(/\/$/, '');
+const PRODUCTION = process.env.PRODUCTION === '1';
 // Minify CSS (comments/whitespace) → main.min.css
 const css = readFileSync(join(root, 'assets/css/main.css'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*([{};,>])\s*/g, '$1').replace(/;}/g, '}').trim();
@@ -22,14 +28,22 @@ const splitH1 = (html) => html.replace(/<h1([^>]*)>([^<]+)<\/h1>/g, (m, attrs, t
   return `<h1${cls}>${words}</h1>`;
 });
 
+const withBase = (html) => !BASE ? html : html
+  .replace(/\b(href|src)="\/(?!\/)/g, `$1="${BASE}/`)
+  .replace(/srcset="([^"]+)"/g, (m, v) => `srcset="${v.replace(/(^|,\s*)\/(?!\/)/g, `$1${BASE}/`)}"`);
+
+const noindex = (html) => PRODUCTION ? html : html.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n<meta name="robots" content="noindex, nofollow">');
+
 for (const p of pages) {
   const dir = join(root, p.path);
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, 'index.html'), splitH1(p.html));
+  writeFileSync(join(dir, 'index.html'), noindex(withBase(splitH1(p.html))));
 }
 
 const urls = pages.map((p) => `  <url><loc>https://www.jasek.pl${p.path}</loc></url>`).join('\n');
 writeFileSync(join(root, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
-writeFileSync(join(root, 'robots.txt'), 'User-agent: *\nAllow: /\nSitemap: https://www.jasek.pl/sitemap.xml\n');
+writeFileSync(join(root, 'robots.txt'), PRODUCTION
+  ? 'User-agent: *\nAllow: /\nSitemap: https://www.jasek.pl/sitemap.xml\n'
+  : 'User-agent: *\nDisallow: /\n');
 
-console.log(`Built ${pages.length} pages:`, pages.map((p) => p.path).join(' '));
+console.log(`Built ${pages.length} pages${BASE ? ` (base ${BASE})` : ''}${PRODUCTION ? ' [production]' : ' [preview, noindex]'}:`, pages.map((p) => p.path).join(' '));

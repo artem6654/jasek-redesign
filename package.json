@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node src/build.mjs",
-    "serve": "node src/serve.mjs 8090"
+    "serve": "node src/serve.mjs 8090",
+    "deploy:pages": "sh scripts/deploy-pages.sh"
   }
 }
